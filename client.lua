@@ -1,53 +1,82 @@
-local lookUptable = { [1] = 1.0, [2] = 0.9, [3] = 0.8, [4] = 0.7, [5] = 0.6, [6] = 0.5, [7] = 0.4, [8] = 0.3, [9] = 0.2, [10] = 0.1, [11] = 0.0 }
+----------------------- # ----------------------- # ----------------------- # -----------------------
+
 local checkDistance = false
+local lookUptable = {
+    [1] = 1.0, [2] = 0.9, [3] = 0.8, [4] = 0.7, [5] = 0.6, [6] = 0.5,
+    [7] = 0.4, [8] = 0.3, [9] = 0.2, [10] = 0.1, [11] = 0.0
+}
 
--- Plays sound on the client
-RegisterNetEvent("brodoPlayer:playOnOne")
-AddEventHandler("brodoPlayer:playOnOne", function(soundFile, soundVolume)
+----------------------- # ----------------------- # ----------------------- # -----------------------
+
+---Plays the given audio
+---@param data { file: string; volume: number }
+local function playAudio(data)
     SendNUIMessage({
-        transactionType     = "playSound",
-        transactionFile     = soundFile,
-        transactionVolume   = soundVolume
+        action = "play",
+        file = data.file,
+        volume = data.volume
     })
-end)
+end
 
--- If in range starts to play sound
-RegisterNetEvent("brodoPlayer:playOnRange")
-AddEventHandler("brodoPlayer:playOnRange", function (soundFile, soundVolume, coords, range)
-    if #(coords - GetEntityCoords(PlayerPedId())) <= range then
-        SendNUIMessage({
-            transactionType     = "playSound",
-            transactionFile     = soundFile,
-            transactionVolume   = soundVolume
-        })
-        checkDistanceForAudio(coords, range) -- changes the volume based on distance from start
-    end
-end)
+---Plays the given audio in a range
+---@param data { file: string; volume: number }
+---@param coords vector3
+---@param range number
+local function playOnRange(data, coords, range)
 
--- Adjust volume in relation to distance
-function checkDistanceForAudio(coords, range)
-    checkDistance = true
+    local volume = 0.0
     local playerPed = PlayerPedId()
-    local division = range / 10.0
+    if #(coords - GetEntityCoords(playerPed)) < range then
+        volume = data.volume
+    end
+
+    playAudio({ file = data.file, volume = volume })
 
     CreateThread(function ()
+        checkDistance = true
+        local division = range / 10.0
         while checkDistance do
-            Wait(100)
+            Wait(500)
+
             local dist = #(coords - GetEntityCoords(playerPed))
+
+            if dist > range then
+                goto skip
+            end
+
             for i = 1, 11 do
                 if dist < i * division and i < 11 then
                     break
                 end
                 SendNUIMessage({
-                    transactionType = "changeVolume",
-                    transactionVolume = lookUptable[i]
+                    action = "setVolume",
+                    volume = lookUptable[i]
                 })
+                print("Changing volume to "..lookUptable[i])
             end
+
+            ::skip::
         end
     end)
 end
 
--- Stops checking for the distance between client and original point if the audio stopped playing
-RegisterNUICallback("audioStopped", function ()
+----------------------- # ----------------------- # ----------------------- # -----------------------
+
+RegisterNetEvent("br_player:playAudio")
+AddEventHandler("br_player:playAudio", playAudio)
+
+RegisterNetEvent("br_player:playRange")
+AddEventHandler("br_player:playRange", playOnRange)
+
+----------------------- # ----------------------- # ----------------------- # -----------------------
+
+RegisterNUICallback("finished", function (body, cb)
     checkDistance = false
+    cb()
 end)
+
+----------------------- # ----------------------- # ----------------------- # -----------------------
+
+exports("play", playAudio)
+
+----------------------- # ----------------------- # ----------------------- # -----------------------
