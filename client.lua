@@ -9,28 +9,30 @@ local lookUptable = {
 ----------------------- # ----------------------- # ----------------------- # -----------------------
 
 ---Plays the given audio
----@param data { file: string; volume: number }
-local function playAudio(data)
+---@param file string
+---@param volume number
+local function playAudio(file, volume)
     SendNUIMessage({
         action = "play",
-        file = data.file,
-        volume = data.volume
+        file = file,
+        volume = volume
     })
 end
 
 ---Plays the given audio in a range
----@param data { file: string; volume: number }
+---@param file string
+---@param volume number
 ---@param coords vector3
 ---@param range number
-local function playOnRange(data, coords, range)
+local function playOnRange(file, volume, coords, range)
 
-    local volume = 0.0
+    local vol = 0.0
     local playerPed = PlayerPedId()
     if #(coords - GetEntityCoords(playerPed)) < range then
-        volume = data.volume
+        vol = volume
     end
 
-    playAudio({ file = data.file, volume = volume })
+    playAudio(file, vol)
 
     CreateThread(function ()
         checkDistance = true
@@ -83,6 +85,7 @@ end)
 ----------------------- # ----------------------- # ----------------------- # -----------------------
 
 exports("play", playAudio)
+exports("range", playOnRange)
 exports("stop", stopAudio)
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------
