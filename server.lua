@@ -25,10 +25,25 @@ local function playOnRange(file, volume, coords, range)
     TriggerClientEvent("br_player:playRange", -1, { file = file, volume = volume }, coords, range)
 end
 
+---Stops the current audio playing on the client
+---@param serverId number|string The player's id
+local function stopOnOne(serverId)
+    ---@diagnostic disable-next-line: param-type-mismatch
+    TriggerClientEvent("br_player:stop", serverId)
+end
+
+---Stops the current audio playing on all them clients
+local function stopOnEveryone()
+    ---@diagnostic disable-next-line: param-type-mismatch
+    TriggerClientEvent("br_player:stop", -1)
+end
+
 ----------------------- # ----------------------- # ----------------------- # -----------------------
 
-exports("single", playOnOne)
-exports("everyone", playOnEveryone)
-exports("range", playOnRange)
+exports("playSingle", playOnOne)
+exports("playEveryone", playOnEveryone)
+exports("playRange", playOnRange)
+exports("stopSingle", stopOnOne)
+exports("stopEveryone", stopOnEveryone)
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------

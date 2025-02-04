@@ -2,8 +2,8 @@
 
 local checkDistance = false
 local lookUptable = {
-    [1] = 1.0, [2] = 0.9, [3] = 0.8, [4] = 0.7, [5] = 0.6, [6] = 0.5,
-    [7] = 0.4, [8] = 0.3, [9] = 0.2, [10] = 0.1, [11] = 0.0
+    [1] = 0.0, [2] = 0.1, [3] = 0.2, [4] = 0.3, [5] = 0.4, [6] = 0.5,
+    [7] = 0.6, [8] = 0.7, [9] = 0.8, [10] = 0.9, [11] = 1.0
 }
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------
@@ -40,24 +40,26 @@ local function playOnRange(data, coords, range)
 
             local dist = #(coords - GetEntityCoords(playerPed))
 
-            if dist > range then
-                goto skip
-            end
+            for i = 1, 10 do
+                local section = division * (11 - i)
 
-            for i = 1, 11 do
-                if dist < i * division and i < 11 then
+                if dist >= section then
+                    SendNUIMessage({
+                        action = "setVolume",
+                        volume = lookUptable[i]
+                    })
                     break
                 end
-                SendNUIMessage({
-                    action = "setVolume",
-                    volume = lookUptable[i]
-                })
-                print("Changing volume to "..lookUptable[i])
             end
-
-            ::skip::
         end
     end)
+end
+
+---Stops the current audio
+local function stopAudio()
+    SendNUIMessage({
+        action = "stop"
+    })
 end
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------
@@ -68,15 +70,19 @@ AddEventHandler("br_player:playAudio", playAudio)
 RegisterNetEvent("br_player:playRange")
 AddEventHandler("br_player:playRange", playOnRange)
 
+RegisterNetEvent("br_player:stop")
+AddEventHandler("br_player:stop", stopAudio)
+
 ----------------------- # ----------------------- # ----------------------- # -----------------------
 
 RegisterNUICallback("finished", function (body, cb)
+    cb(0)
     checkDistance = false
-    cb()
 end)
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------
 
 exports("play", playAudio)
+exports("stop", stopAudio)
 
 ----------------------- # ----------------------- # ----------------------- # -----------------------

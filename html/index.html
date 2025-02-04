@@ -1,35 +1,55 @@
 
 <html>
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.1/howler.min.js" type="text/javascript"></script>
     <script>
 
-        let audioPlayer = null
+let audioPlayer = new Audio()
 
-        window.addEventListener("message", (event) => {
-            const data = event.data
+audioPlayer.addEventListener("ended", () => {
 
-            switch (data.action) {
-                case "play":
+    if (!audioPlayer.src) {
+        return
+    }
 
-                    if (audioPlayer != null) {
-                        audioPlayer.pause()
-                    }
+    fetch(`https://${GetParentResourceName()}/finished`, {
+        method: "POST",
+    }).then(() => {
+        audioPlayer.src = ""
+    })
 
-                    audioPlayer = new Howl({ src: [ "./sounds/" + data.file ], onend: () => {
-                        fetch(`https://${GetParentResourceName()}/finished`, {
-                            method: "POST",
-                        }).then()
-                    }})
-                    audioPlayer.volume(data.volume)
-                    audioPlayer.play()
-                    break
+})
 
-                case "setVolume":
-                    audioPlayer.volume(data.volume)
-                    break
+window.addEventListener("message", (event) => {
+
+    const data = event.data
+
+    if (!data || typeof data.action != "string") {
+        console.warn("Messaggio ricevuto non valido:", data)
+    return
+}
+
+    switch (data.action) {
+        case "play":
+            if (audioPlayer.src && !audioPlayer.paused) {
+                audioPlayer.pause()
             }
-        })
+            audioPlayer.src = `./sounds/${data.file}`
+            audioPlayer.volume = data.volume ?? 0.5
+            audioPlayer.play().catch((error)=>{
+                console.log("Error occurred when playing the audio:", error)
+            })
+            break
+
+        case "setVolume":
+            audioPlayer.volume = data.volume ?? 0.5
+            break
+
+        case "stop":
+            audioPlayer.pause()
+            audioPlayer.removeAttribute("src")
+            break
+    }
+})
     </script>
 </head>
 </html>
