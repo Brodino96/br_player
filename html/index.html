@@ -3,53 +3,53 @@
 <head>
     <script>
 
-let audioPlayer = new Audio()
+        let audioPlayer = new Audio()
 
-audioPlayer.addEventListener("ended", () => {
+        audioPlayer.addEventListener("ended", () => {
 
-    if (!audioPlayer.src) {
-        return
-    }
-
-    fetch(`https://${GetParentResourceName()}/finished`, {
-        method: "POST",
-    }).then(() => {
-        audioPlayer.src = ""
-    })
-
-})
-
-window.addEventListener("message", (event) => {
-
-    const data = event.data
-
-    if (!data || typeof data.action != "string") {
-        console.warn("Messaggio ricevuto non valido:", data)
-    return
-}
-
-    switch (data.action) {
-        case "play":
-            if (audioPlayer.src && !audioPlayer.paused) {
-                audioPlayer.pause()
+            if (!audioPlayer.src) {
+                return
             }
-            audioPlayer.src = `./sounds/${data.file}`
-            audioPlayer.volume = data.volume ?? 0.5
-            audioPlayer.play().catch((error)=>{
-                console.log("Error occurred when playing the audio:", error)
+
+            fetch(`https://${GetParentResourceName()}/finished`, {
+                method: "POST",
+            }).then(() => {
+                audioPlayer.src = ""
             })
-            break
 
-        case "setVolume":
-            audioPlayer.volume = data.volume ?? 0.5
-            break
+        })
 
-        case "stop":
-            audioPlayer.pause()
-            audioPlayer.removeAttribute("src")
-            break
-    }
-})
+        window.addEventListener("message", (event) => {
+
+            const data = event.data
+
+            if (!data || typeof data.action != "string") {
+                console.warn("Messaggio ricevuto non valido:", data)
+            return
+        }
+
+            switch (data.action) {
+                case "play":
+                    if (audioPlayer.src && !audioPlayer.paused) {
+                        audioPlayer.pause()
+                    }
+                    audioPlayer.src = `./sounds/${data.file}`
+                    audioPlayer.volume = data.volume ?? 0.5
+                    audioPlayer.play().catch((error)=>{
+                        console.log("Error occurred when playing the audio:", error)
+                    })
+                    break
+
+                case "setVolume":
+                    audioPlayer.volume = data.volume ?? 0.5
+                    break
+
+                case "stop":
+                    audioPlayer.pause()
+                    audioPlayer.removeAttribute("src")
+                    break
+            }
+        })
     </script>
 </head>
 </html>
