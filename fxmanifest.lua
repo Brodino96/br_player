@@ -4,7 +4,7 @@ lua54 "yes"
 
 author "Brodino"
 description "Audioplayer based on plunkettscott's interact-sound"
-version "1.0"
+version "2.0"
 
 server_script "server.lua"
 client_script "client.lua"
